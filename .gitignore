@@ -2,3 +2,5 @@
 .idea/
 logs/
 *.out
+*.err
+*.log
