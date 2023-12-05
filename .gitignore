@@ -4,3 +4,5 @@ logs/
 *.out
 *.err
 *.log
+.ipynb_checkpoints
+__pycache__
