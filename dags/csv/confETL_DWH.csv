@@ -1,0 +1,236 @@
+item_id|priority|target_table|type_table|seq|query
+T001.1|'1'|STG_ORDER_DETAILS|PYTHON|'1'|"/Users/mangeluz/Lab01/applaudostudios/python/orderDetailsv1_1.py"
+T001.2|'1'|STG_ORDER_DETAILS|SHELL|'2'|"/Users/mangeluz/airflow/dags/sh/./load_order_details.sh "
+T002.1|'1'|STG_PRODUCTS|PYTHON|'1'|"/Users/mangeluz/Lab01/applaudostudios/python/ProductosJsonv1.1.py"
+T002.2|'1'|STG_PRODUCTS|SHELL|'2'|"/Users/mangeluz/airflow/dags/sh/./load_products.sh "
+T003.1|'1'|300_WALMART_MARKET_HUB_AISLE|HUB|'1'|"create or replace procedure raw_vault.hub_aisle()
+language plpgsql
+as $$
+begin
+
+insert into raw_vault.""300_walmart_market_hub_aisle""
+select
+	repeat('0',32) as ""300_walmart_market_hub_aisle_hkey"",
+	'0001-01-01T00:00:00-0600' as load_date,
+	'SYSTEM' as record_source,
+	'' as aisle
+where not exists (
+	select 1
+	from raw_vault.""300_walmart_market_hub_aisle""
+	where ""300_walmart_market_hub_aisle_hkey"" = repeat('0',32)
+);
+
+insert into raw_vault.""300_walmart_market_hub_aisle""
+select
+	a.""300_walmart_market_hub_aisle_hkey"",
+	a.load_date,
+	a.record_source,
+	a.aisle
+from (
+select distinct
+	case when coalesce(aisle,'') = '' then repeat('0',32) else md5(upper(aisle)) end as ""300_walmart_market_hub_aisle_hkey"",
+	to_char(load_date::date,'yyyy-mm-ddT00:00:00-0600') as load_date,
+	record_source,
+	upper(aisle) as aisle
+from stage.stg_products sp
+where load_date in (
+	select min(load_date)
+	from stage.stg_products
+)) a
+where not exists (
+	select 1
+	from raw_vault.""300_walmart_market_hub_aisle""
+	where  ""300_walmart_market_hub_aisle_hkey"" = a.""300_walmart_market_hub_aisle_hkey""
+);
+end;
+$$;
+
+call raw_vault.hub_aisle();
+
+drop procedure raw_vault.hub_aisle();"
+T004.1|'1'|300_WALMART_MARKET_HUB_DEPARTMENT|HUB|'1'|"create or replace procedure raw_vault.hub_department()
+language plpgsql
+as $$
+begin
+
+insert into raw_vault.""300_walmart_market_hub_department""
+select
+	repeat('0',32) as ""300_walmart_market_hub_department_hkey"",
+	'0001-01-01T00:00:00-0600' as load_date,
+	'SYSTEM' as record_source,
+	'' as department
+where not exists (
+	select 1
+	from raw_vault.""300_walmart_market_hub_department""
+	where ""300_walmart_market_hub_department_hkey"" = repeat('0',32)
+);
+
+insert into raw_vault.""300_walmart_market_hub_department""
+select
+	a.""300_walmart_market_hub_department_hkey"",
+	a.load_date,
+	a.record_source,
+	a.department
+from (
+select distinct
+	case when coalesce(department,'') = '' then repeat('0',32) else md5(upper(department)) end as ""300_walmart_market_hub_department_hkey"",
+	to_char(load_date::date,'yyyy-mm-ddT00:00:00-0600') as load_date,
+	record_source,
+	upper(department) as department
+from stage.stg_products sp
+where load_date in (
+	select min(load_date)
+	from stage.stg_products
+)) a
+where not exists (
+	select 1
+	from raw_vault.""300_walmart_market_hub_department""
+	where  ""300_walmart_market_hub_department_hkey"" = a.""300_walmart_market_hub_department_hkey""
+);
+end;
+$$;
+
+call raw_vault.hub_department();
+
+drop procedure raw_vault.hub_department();"
+T005.1|'1'|300_WALMART_MARKET_HUB_PRODUCT|HUB|'1'|"create or replace procedure raw_vault.hub_product()
+language plpgsql
+as $$
+begin
+
+insert into raw_vault.""300_walmart_market_hub_product""
+select
+	repeat('0',32) as ""300_walmart_market_hub_product_hkey"",
+	'0001-01-01T00:00:00-0600' as load_date,
+	'SYSTEM' as record_source,
+	'' as product
+where not exists (
+	select 1
+	from raw_vault.""300_walmart_market_hub_product""
+	where ""300_walmart_market_hub_product_hkey"" = repeat('0',32)
+);
+
+insert into raw_vault.""300_walmart_market_hub_product""
+select
+	a.""300_walmart_market_hub_product_hkey"",
+	a.load_date,
+	a.record_source,
+	a.product
+from (
+	select distinct
+		case when coalesce(producto,'') = '' then repeat('0',32) else md5(upper(producto)) end as ""300_walmart_market_hub_product_hkey"",
+		to_char(load_date::date,'yyyy-mm-ddT00:00:00-0600') as load_date,
+		record_source,
+		upper(producto) as product
+	from stage.stg_order_details sod
+	where load_date in (
+		select min(load_date)
+		from stage.stg_order_details
+	)) a
+where not exists (
+	select 1
+	from raw_vault.""300_walmart_market_hub_product""
+	where  ""300_walmart_market_hub_product_hkey"" = a.""300_walmart_market_hub_product_hkey""
+);
+
+end;
+$$;
+
+call raw_vault.hub_product();
+
+drop procedure raw_vault.hub_product();"
+T006.1|'1'|300_WALMART_MARKET_LINK_PRODUCTAISLE|LINK|'1'|"create or replace procedure raw_vault.link_productaisle()
+language plpgsql
+as $$
+begin
+
+insert into raw_vault.""300_walmart_market_link_productaisle""
+select
+	repeat('0',32) as ""300_walmart_market_link_productaisle_hkey"",
+	'0001-01-01T00:00:00-0600' as load_date,
+	'SYSTEM' as record_source,
+	repeat('0',32) as ""300_walmart_market_hub_product_hkey"",
+	repeat('0',32) as ""300_walmart_market_hub_aisle_hkey""
+where not exists (
+	select 1
+	from raw_vault.""300_walmart_market_link_productaisle""
+	where ""300_walmart_market_link_productaisle_hkey"" = repeat('0',32));
+
+insert into raw_vault.""300_walmart_market_link_productaisle""
+select
+	a.""300_walmart_market_link_productaisle_hkey"",
+	a.load_date,
+	a.record_source,
+	a.""300_walmart_market_hub_product_hkey"",
+	a.""300_walmart_market_hub_aisle_hkey""
+from (
+	select distinct
+		md5(case when coalesce(sp.product_name,'') = '' then '0' else upper(sp.product_name) end||';'||
+		case when coalesce(sp.aisle,'') = '' then repeat('0',32) else upper(sp.aisle) end) as ""300_walmart_market_link_productaisle_hkey"",
+		to_char(load_date::date,'yyyy-mm-ddT00:00:00-0600') as load_date,
+		sp.record_source,
+		case when coalesce(sp.product_name,'') = '' then repeat('0',32) else md5(upper(sp.product_name)) end as ""300_walmart_market_hub_product_hkey"",
+		case when coalesce(sp.aisle,'') = '' then repeat('0',32) else md5(upper(sp.aisle)) end as ""300_walmart_market_hub_aisle_hkey""
+	from stage.stg_products sp
+	where load_date in (
+		select min(load_date)
+		from stage.stg_products
+)) a
+where not exists (
+	select 1 from raw_vault.""300_walmart_market_link_productaisle""
+	where ""300_walmart_market_link_productaisle_hkey"" = a.""300_walmart_market_link_productaisle_hkey""
+);
+end;
+$$;
+
+call raw_vault.link_productaisle();
+
+drop procedure raw_vault.link_productaisle();"
+T007.1|'1'|300_WALMART_MARKET_LINK_AISLEDEPARTMENT|LINK|'1'|"create or replace procedure raw_vault.linkaisledepartment()
+language plpgsql
+as $$
+begin
+insert into raw_vault.""300_walmart_market_link_aisledepartment""
+select
+	repeat('0',32) as ""300_walmart_market_link_aisledepartment_hkey"",
+	'0001-01-01T00:00:00-0600' as load_date,
+	'SYSTEM' as record_source,
+	repeat('0',32) as ""300_walmart_market_hub_aisle_hkey"",
+	repeat('0',32) as ""300_walmart_market_hub_department_hkey""
+where not exists (
+	select 1
+	from raw_vault.""300_walmart_market_link_aisledepartment""
+	where ""300_walmart_market_link_aisledepartment_hkey"" = repeat('0',32));
+
+
+insert into raw_vault.""300_walmart_market_link_aisledepartment""
+select
+	a.""300_walmart_market_link_aisledepartment_hkey"",
+	a.load_date,
+	a.record_source,
+	a.""300_walmart_market_hub_aisle_hkey"",
+	a.""300_walmart_market_hub_department_hkey""
+from (
+	select distinct
+		md5(case when coalesce(sp.aisle,'') = '' then '0' else upper(sp.aisle) end||';'||
+		case when coalesce(sp.department,'') = '' then '0' else upper(sp.department) end) as ""300_walmart_market_link_aisledepartment_hkey"",
+		to_char(sp.load_date::date,'yyyy-mm-ddT00:00:00-0600') as load_date,
+		sp.record_source,
+		case when coalesce(sp.aisle,'') = '' then repeat('0',32) else md5(upper(sp.aisle)) end as ""300_walmart_market_hub_aisle_hkey"",
+		case when coalesce(sp.department,'') = '' then repeat('0',32) else md5(upper(sp.department)) end as ""300_walmart_market_hub_department_hkey""
+	from stage.stg_products sp
+	where load_date in (
+		select min(load_date)
+		from stage.stg_products
+)) a
+where not exists (
+	select 1 from raw_vault.""300_walmart_market_link_aisledepartment""
+	where ""300_walmart_market_link_aisledepartment_hkey"" = a.""300_walmart_market_link_aisledepartment_hkey""
+);
+end;
+$$;
+
+call raw_vault.linkaisledepartment();
+
+drop procedure raw_vault.linkaisledepartment();
+"

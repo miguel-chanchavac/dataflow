@@ -1,0 +1,4 @@
+item_id|priority|type_table|seq|target|query
+T001.1|'1'|PYTHON|'1'|sparkSession|/Users/mangeluz/Documents/millicom/Honduras/pythonCode/readerEntities/lib/createSparkConn.py
+T001.2|'1'|PYTHON|'1'|readerFunctions|/Users/mangeluz/Documents/millicom/Honduras/pythonCode/readerEntities/lib/readerFunctions.py
+T001.3|'1'|PYTHON|'2'|readerInitial|/Users/mangeluz/Documents/millicom/Honduras/pythonCode/readerEntities/readerInitial.py

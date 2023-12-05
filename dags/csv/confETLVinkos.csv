@@ -1,0 +1,6 @@
+item_id|priority|target_table|type_table|seq|query
+T001.1|'1'|TransferFiles|SHELL|'1'|"/Users/mangeluz/vinkOS/script/transferFilesFromSourceToLocal.sh "
+T002.1|'1'|TransformData|PYTHON|'1'|"/Users/mangeluz/vinkOS/script/transformReport.py"
+T003.1|'1'|ZipFiles|SHELL|'1'|"/Users/mangeluz/vinkOS/script/zipFiles.sh "
+T004.1|'1'|VISITANTE|TABLA|'1'|"call vinkos.carga_visitantas;"
+T004.2|'1'|ESTADISTICA|TABLA|'1'|"call vinkos.carga_estadistica;"

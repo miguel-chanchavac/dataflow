@@ -1,0 +1,7 @@
+item_id|priority|type_table|seq|target|query
+T001.1|'1'|PYTHON|'1'|classSparkSession|/Users/mangeluz/Documents/pythoncode/taxiDriver/lib/classSparkFunction.py
+T001.2|'1'|PYTHON|'1'|classMinio|/Users/mangeluz/Documents/pythoncode/taxiDriver/lib/classMinio.py
+T001.3|'1'|PYTHON|'1'|logging|/Users/mangeluz/Documents/pythoncode/taxiDriver/lib/loggingConf.py
+T001.4|'1'|PYTHON|'2'|minio|/Users/mangeluz/Documents/pythoncode/taxiDriver/minioCheckFiles.py
+T002.1|'1'|PYTHON|'3'|greenTaxi|/Users/mangeluz/Documents/pythoncode/taxiDriver/greenTaxiAnalytic.py
+T002.2|'1'|PYTHON|'3'|yellowTaxi|/Users/mangeluz/Documents/pythoncode/taxiDriver/yellowTaxiAnalytic.py

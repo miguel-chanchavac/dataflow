@@ -1,0 +1,150 @@
+item_id|priority|target_table|type_table|seq|query
+T001.1|'1'|STG_ORDER_DETAILS|PYTHON|'1'|"/Users/mangeluz/Documents/miguelangel/CV/applaudoStudios/python/orderDetails.py"
+T001.2|'1'|STG_ORDER_DETAILS|SHELL|'2'|"/Users/mangeluz/airflow/dags/sh/./load_order_details.sh "
+T002.1|'1'|STG_PRODUCTS|PYTHON|'1'|"/Users/mangeluz/Documents/miguelangel/CV/applaudoStudios/python/ProductosJson.py"
+T002.2|'1'|STG_PRODUCTS|SHELL|'2'|"/Users/mangeluz/airflow/dags/sh/./load_products.sh "
+T003.1|'1'|DIM_AISLE|DIM|'1'|"insert into dim_aisle
+select p.*
+from (
+select distinct
+	md5(p.aisle) as aisle_hkey,
+	p.aisle
+from stg_products p
+union
+select repeat('0',32), 'No data found') p
+left join dim_aisle dp on p.aisle_hkey = dp.aisle_hkey
+where dp.aisle_hkey is null"
+T004.1|'1'|DIM_DEPARTMENT|DIM|'1'|"insert into dim_department
+select p.* from (
+select distinct
+	md5(p.department) as department_hkey,
+	p.department
+from stg_products p
+union
+select repeat('0',32), 'No data found') p
+left join dim_department dd on p.department_hkey = dd.department_hkey
+where dd.department_hkey is null"
+T005.1|'1'|DIM_ORDER_HOUR_OF_DAY|DIM|'1'|"insert into dim_order_hour_of_day
+select a.* from (
+select
+	md5(a.order_hour_of_day) as order_hour_of_day_hkey,
+	a.order_hour_of_day
+from (
+	select distinct
+		case
+			when length(replace(order_hour_of_day,'-','')) = 1 then '0'||replace(order_hour_of_day,'-','') else replace(order_hour_of_day,'-','')
+		end order_hour_of_day
+	from stg_order_details
+) a
+union
+select repeat('0',32), '-1') a
+left join dim_order_hour_of_day dh on a.order_hour_of_day_hkey = dh.order_hour_of_day_hkey
+where dh.order_hour_of_day_hkey is null"
+T006.1|'1'|DIM_ORDER_HOUR_OF_DAY|DIM|'1'|"insert into dim_order_dow
+select od.* from (
+select distinct
+	md5(od.order_dow) as order_dow_hkey,
+	od.order_dow::int as order_dow,
+	case
+		when od.order_dow = '0' then 'sunday'
+		when od.order_dow = '1' then 'monday'
+		when od.order_dow = '2' then 'tuesday'
+		when od.order_dow = '3' then 'wednesday'
+		when od.order_dow = '4' then 'thursday'
+		when od.order_dow = '5' then 'friday'
+		when od.order_dow = '6' then 'saturday'
+	end as order_dow_desc
+from stg_order_details od
+union
+select repeat('0',32), '-1', 'no data found') od
+left join dim_order_dow dd on od.order_dow_hkey = dd.order_dow_hkey
+where dd.order_dow_hkey is null"
+T007.1|'1'|FACT_ORDER_DETAILS|FACT|'1'|"create or replace procedure load_factorder()
+language plpgsql
+as $$
+begin
+
+insert into fact_order_details
+
+select
+	sod.order_id::int as order_id,
+	sod.user_id::int as user_id,
+	sod.order_number::int as order_number,
+	md5(sod.order_dow) as order_dow_hkey,
+	md5(case
+		when length(replace(order_hour_of_day,'-','')) = 1 then '0'||replace(order_hour_of_day,'-','') else replace(order_hour_of_day,'-','')
+	end) as order_hour_of_day_hkey,
+	case when sp.aisle is null then repeat('0',32) else md5(sp.aisle) end as aisle_hkey,
+	case when sp.department is null then repeat('0',32) else md5(sp.department) end as department_hkey,
+	ntile(4) over (partition by sod.order_id order by sod.cantidad desc) as quartil_key,
+	sod.producto as product,
+	sod.cantidad as add_to_cart_order,
+	sod.days_since_prior_order::float::int as days_since_prior_order,
+	round(sod.cantidad::numeric/ot.total_add_to_cart::numeric*100,2) as percentage
+from stg_order_details sod
+left join stg_products sp on upper(sod.producto) = upper(sp.product_name)
+left join (
+	select
+		co.order_id,
+		sum(co.cantidad::int) as total_add_to_cart
+	from stg_order_details co
+	group by co.order_id
+) ot on ot.order_id = sod.order_id
+
+left join fact_order_details fd on fd.order_id = sod.order_id::int and fd.user_id = sod.user_id::int and fd.order_number = sod.order_number::int
+where fd.order_id is null;
+
+end;
+$$;
+call load_factorder();
+drop procedure load_factorder();"
+T008.1|'1'|CUBE_ORDERS|CUBO|'1'|"create or replace procedure load_cubeorders()
+language plpgsql
+as $$
+begin
+
+create materialized view if not exists cube_orders as
+select
+	fo.order_id,
+	fo.user_id,
+	fo.order_number,
+	dod.order_dow,
+	doh.order_hour_of_day,
+	fo.product,
+	da.aisle,
+	dd.department,
+	fo.add_to_cart_order,
+	dod.order_dow_desc,
+	fo.days_since_prior_order,
+	dq.quartil_desc,
+	fo.percentaje
+from fact_order_details fo
+left join dim_aisle da on da.aisle_hkey = fo.aisle_hkey
+left join dim_department dd on dd.department_hkey = fo.department_hkey
+left join dim_order_dow dod on dod.order_dow_hkey = fo.order_dow_hkey
+left join dim_order_hour_of_day doh on doh.order_hour_of_day_hkey = fo.order_hour_of_day_hkey
+left join dim_quartil dq on dq.quartil_key = fo.quartil_key;
+
+refresh materialized view cube_orders;
+
+end;
+$$;
+call load_cubeorders();
+drop procedure load_cubeorders();"
+T009.1|'1'|DIM_QUARTIL|DIM|'1'|"insert into dim_quartil
+select
+	x.quartil_key,
+	case
+		when x.quartil_key = 1 then 'Q1'
+		when x.quartil_key = 2 then 'Q2'
+		when x.quartil_key = 3 then 'Q3'
+		when x.quartil_key = 4 then 'Q4'
+	end as quartil_desc
+from (
+select distinct
+	ntile(4) over (partition by fod.order_id order by add_to_cart_order desc) as quartil_key
+from fact_order_details fod
+) x
+left join dim_quartil dq on x.quartil_key = dq.quartil_key
+where dq.quartil_key is null;"
+T009.1|'2'|cube_orders.csv|UNLOAD|'1'|"/Users/mangeluz/airflow/dags/sh/./cuboorders.sh "

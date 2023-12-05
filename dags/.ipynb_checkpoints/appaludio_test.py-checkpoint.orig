@@ -1,0 +1,161 @@
+######################################################
+#Created by: Miguel Angel Chanchavac Alvarado
+#Date created: 20210510
+#overview: DAG for test by Applaudio Studio
+######################################################
+import pandas as pd
+import datetime
+import airflow
+from airflow.models import DAG
+from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
+from airflow.providers.postgres.operators.postgres import PostgresOperator
+
+#----configuration different variables
+REDSHIFT_CONN_ID = 'Redshift'
+POOL_MAIN = 'default_pool'
+DDB_CSD = 'confApplaudio'
+DAG_PATH = '/Users/mangeluz/airflow/dags/'
+
+#----CSV read configuration
+table_df_csd = pd.read_csv(DAG_PATH + 'csv/' +DDB_CSD+'.csv',sep='|')
+table_df_csd = table_df_csd.sort_values(by=['priority', 'item_id', 'seq'])
+table_list_dict = table_df_csd.to_dict('records')
+
+args = {
+    'owner': 'Airflow',
+    'start_date': datetime.datetime(2021, 5, 9),
+    'depends_on_past': True,
+    'wait_for_downstream' : True,
+    #'on_failure_callback': aws.task_fail_email_alert,
+}
+
+dag = DAG(
+    dag_id='ApplaudoLab',
+    default_args=args,
+    #schedule_interval='50 11 * * *',
+)
+
+#--------------- Create dummy task ----------------
+######################################################
+######################################################
+ta = BashOperator(
+    task_id='Start_dag',
+    #priority_weight = weight_var,
+    bash_command='echo "{{ ts }}" && sleep 1',
+    dag=dag,
+    )
+
+tb = BashOperator(
+    task_id='Done_stage',
+    #priority_weight = weight_var,
+    bash_command='echo "{{ ts }}" && sleep 1',
+    dag=dag,
+    )
+
+tc = BashOperator(
+    task_id='Done_Dim',
+    #priority_weight = weight_var,
+    bash_command='echo "{{ ts }}" && sleep 1',
+    dag=dag,
+    )
+
+td = BashOperator(
+    task_id='Done_Fact',
+    #priority_weight = weight_var,
+    bash_command='echo "{{ ts }}" && sleep 1',
+    dag=dag,
+    )
+
+te = BashOperator(
+    task_id='Done_Cubo',
+    #priority_weight = weight_var,
+    bash_command='echo "{{ ts }}" && sleep 1',
+    dag=dag,
+    )
+
+tf = BashOperator(
+    task_id='Done_Unload',
+    #priority_weight = weight_var,
+    bash_command='echo "{{ ts }}" && sleep 1',
+    dag=dag,
+    )
+
+t99 = BashOperator(
+    task_id='End_dag',
+    #priority_weight = weight_var,
+    bash_command='echo "{{ ts }}" && sleep 1',
+    dag=dag,
+    )
+######################################################
+######################################################
+
+#------Create task about ETL---------------------
+######################################################
+
+for i in table_list_dict:
+    if i['type_table'] == "SHELL" and i['seq'] == "'1'" and i['priority'] == "'1'":
+        t1 = BashOperator(
+            task_id = 'load_'+i['target_table']+'_'+i['item_id'],
+            bash_command=i['query'],
+            dag=dag,
+            pool=POOL_MAIN,
+        )
+        ta >> t1 >> tb
+
+    if i['type_table'] == "PYTHON" and i['seq'] == "'1'" and i['priority'] == "'1'":
+        t2 = BashOperator(
+            task_id = 'load_'+i['target_table']+'_'+i['item_id'],
+            bash_command='python3'+' '+i['query'],
+            dag=dag,
+            pool=POOL_MAIN,
+        )
+        ta >> t2
+
+    if i['type_table'] == "SHELL" and i['seq'] == "'2'" and i['priority'] == "'1'":
+        t3 = BashOperator(
+            task_id = 'load_'+i['target_table']+'_'+i['item_id'],
+            bash_command=i['query'],
+            dag=dag,
+            pool=POOL_MAIN,
+        )
+        t2 >> t3 >> tb
+
+    if i['type_table'] == "DIM" and i['seq'] == "'1'" and i['priority'] == "'1'":
+        t4 = PostgresOperator(
+            task_id = 'load_'+i['target_table']+'_'+i['item_id'],
+            postgres_conn_id = REDSHIFT_CONN_ID,
+            sql=i['query'],
+            dag=dag,
+            pool=POOL_MAIN,
+        )
+        tb >> t4 >> tc
+
+    if i['type_table'] == "FACT" and i['seq'] == "'1'" and i['priority'] == "'1'":
+        t5 = PostgresOperator(
+            task_id = 'load_'+i['target_table']+'_'+i['item_id'],
+            postgres_conn_id = REDSHIFT_CONN_ID,
+            sql=i['query'],
+            dag=dag,
+            pool=POOL_MAIN,
+        )
+        tc >> t5 >> td
+
+    if i['type_table'] == "CUBO" and i['seq'] == "'1'" and i['priority'] == "'1'":
+        t6 = PostgresOperator(
+            task_id = 'load_'+i['target_table']+'_'+i['item_id'],
+            postgres_conn_id = REDSHIFT_CONN_ID,
+            sql=i['query'],
+            dag=dag,
+            pool=POOL_MAIN,
+        )
+        td >> t6 >> te
+
+    if i['type_table'] == "UNLOAD" and i['seq'] == "'1'" and i['priority'] == "'2'":
+        t7 = BashOperator(
+            task_id = 'load_'+i['target_table']+'_'+i['item_id'],
+            bash_command=i['query'],
+            dag=dag,
+            pool=POOL_MAIN,
+        )
+        te >> t7 >> tf >> t99

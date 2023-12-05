@@ -1,0 +1,16 @@
+import pandas as pd
+import datetime
+import airflow
+from airflow.models import DAG
+
+
+task_explicit = bigquery.BigQueryInsertJobOperator(
+    task_id='task_explicit_connection',
+    gcp_conn_id='gcpLab',
+    configuration={
+        "query": {
+            "query": 'SELECT 1',
+            "useLegacySql": False
+        }
+    }
+)
