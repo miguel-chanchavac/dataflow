@@ -10,3 +10,5 @@ airflow.db
 Airflow/
 *.pid
 *.cfg
+*.iml
+webserver_config.py
