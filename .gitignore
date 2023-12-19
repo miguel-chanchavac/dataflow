@@ -12,3 +12,5 @@ Airflow/
 *.cfg
 *.iml
 webserver_config.py
+dags/__pycache__
+dags/.ipynb_checkpoints
