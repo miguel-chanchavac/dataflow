@@ -71,7 +71,7 @@ class dummy_task:
             return DAG(
                 dag_id=DAG_ID,
                 default_args=args,
-                # schedule_interval='50 11 * * *',
+                schedule_interval=None,
                 dagrun_timeout=timedelta(minutes=60),
             )
         except Exception as e:
