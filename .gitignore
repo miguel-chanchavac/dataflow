@@ -14,3 +14,4 @@ Airflow/
 webserver_config.py
 dags/__pycache__
 dags/.ipynb_checkpoints
+standalone_admin_password.txt
