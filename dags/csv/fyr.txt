@@ -1,0 +1,17 @@
+item_id|priority|type_table|seq|target|query
+T001.1|'1'|PYTHON|'1'|csvTransform|/Users/mangeluz/Documents/dataDrivenPro/fyrCompany/ingresosToCSV.py
+T001.2|'1'|PYTHON|'1'|LoadStage_ingreso|/Users/mangeluz/Documents/dataDrivenPro/fyrCompany/loadCSVFileTo.py
+T002.1|'1'|SQL|'1'|LoadStage_ingreso_historia|sql/fyrSQL/loadStageIngresoHistoria.sql
+T003.1|'1'|SQL|'1'|TruncateEstadoFinanciero|sql/fyrSQL/truncateEstadoFinanciero.sql
+T003.2|'1'|SQL|'1'|LoadActivosCorrientes|sql/fyrSQL/ef_activos_corrientes.sql
+T003.3|'1'|SQL|'1'|LoadPasivosCorrientes|sql/fyrSQL/ef_pasivos_corrientes.sql
+T003.4|'1'|SQL|'1'|LoadActivosNoCorrientes|sql/fyrSQL/ef_activos_no_corrientes.sql
+T003.5|'1'|SQL|'1'|LoadCapitalReserva|sql/fyrSQL/ef_capital_reserva.sql
+T003.6|'1'|SQL|'1'|LoadCostoProduccion|sql/fyrSQL/ef_costo_produccion.sql
+T003.7|'1'|SQL|'1'|LoadIngreso|sql/fyrSQL/ef_ingreso.sql
+T003.8|'1'|SQL|'1'|LoadMargenBrutoGasto|sql/fyrSQL/ef_margenBruto_gasto.sql
+T003.9|'1'|SQL|'1'|LoadPasivosNoCorrientes|sql/fyrSQL/ef_pasivos_no_corrientes.sql
+T003.10|'1'|SQL|'1'|ViewLiquidez|sql/fyrSQL/viewLiquidez.sql
+T003.11|'1'|SQL|'1'|ViewCajaBancosClientesPro|sql/fyrSQL/viewCajaBancosClientesProveedores.sql
+T003.12|'1'|SQL|'1'|ViewResultadoOperacion|sql/fyrSQL/viewResultadoOperacion.sql
+T003.13|'1'|SQL|'1'|ViewTopVentasProveedor|sql/fyrSQL/viewTopVentasProveedor.sql

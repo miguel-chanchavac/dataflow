@@ -1,0 +1,1 @@
+truncate table stage.estado_financiero;
