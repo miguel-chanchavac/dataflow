@@ -1,0 +1,10 @@
+item_id|priority|type_table|seq|target|query
+T001.1|'1'|PYTHON|'1'|classSparkSession|/Users/mangeluz/Documents/transformacionDigital/empresas/NASA/lib/classSparkFunction.py
+T001.2|'1'|PYTHON|'1'|classKafka|/Users/mangeluz/Documents/transformacionDigital/empresas/NASA/lib/classKafka.py
+T001.3|'1'|PYTHON|'1'|functions|/Users/mangeluz/Documents/transformacionDigital/empresas/NASA/lib/functions.py
+T001.4|'1'|PYTHON|'1'|loadVariables|/Users/mangeluz/Documents/transformacionDigital/empresas/NASA/lib/loadVariables.py
+T001.5|'1'|PYTHON|'1'|loggingConf|/Users/mangeluz/Documents/transformacionDigital/empresas/NASA/lib/loggingConf.py
+T001.6|'1'|PYTHON|'1'|schemas|/Users/mangeluz/Documents/transformacionDigital/empresas/NASA/lib/schemas.py
+T002.1|'1'|PYTHON|'1'|apiGetNasa|/Users/mangeluz/Documents/transformacionDigital/empresas/NASA/apiGetNasa.py
+T002.2|'1'|PYTHON|'1'|consumerNasa|/Users/mangeluz/Documents/transformacionDigital/empresas/NASA/consumerNasa.py
+
